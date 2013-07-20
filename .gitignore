@@ -1,0 +1,7 @@
+*~
+*.txt
+*.tsv
+*.Civ5Replay
+\#*\#
+push_github
+
