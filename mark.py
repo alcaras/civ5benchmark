@@ -8,50 +8,45 @@ import signal
 import re
 
 
-# hard coding some things for poland
-our_leader = "Casimir III"
-
+from our_leader import our_leader
 
 # need a list of wonders that we care about
-# comment the ones we don't care about, or order as desired
-# see wonders_list.py for the whole list
-# might want to resort this list
 wonders_to_watch = [
     "Great Library",
     "Temple of Artemis",
     "Stonehenge",
     "Pyramids",
     "Great Lighthouse",
-#    "Terracotta Army",
+    "Terracotta Army",
     "Hanging Gardens",
     "Colossus",
     "Petra",
-#    "Parthenon",
+    "Parthenon",
     "Chichen Itza",
-#    "Mausoleum of Halicarnassus",
+    "Mausoleum of Halicarnassus",
     "Oracle",
     "Machu Picchu",
     "Hagia Sophia",
-#    "Statue of Zeus",
-#    "Alhambra",
-#    "Borobudur",
+    "Statue of Zeus",
+    "Alhambra",
+    "Borobudur",
     "Great Wall",
-#    "Notre Dame",
+    "Notre Dame",
     "Angkor Wat",
     "Great Mosque of Djenne",
-#    "Himeji Castle",
+    "Himeji Castle",
     "Leaning Tower of Pisa",
     "Globe Theatre",
     "Sistine Chapel",
     "Forbidden Palace",
     "Uffizi",
     "Porcelain Tower",
-#    "Red Fort",
-#    "Taj Mahal",
+    "Red Fort",
+    "Taj Mahal",
     "Louvre",
     "Eiffel Tower",
     "Broadway",
-#    "Brandenburg Gate",
+    "Brandenburg Gate",
     "Statue of Liberty",
     "Cristo Redentor",
     "CN Tower",
@@ -124,7 +119,7 @@ if __name__ == "__main__":
     print "What\tWhen\tNotes"
 
     # city foundings
-    match_events(replay, "(\d*)\t0\t(.*) is founded.", "Founded City", iterate=True)
+    match_events(replay, "(\d*)\t0\t(.*) is founded.", "Founded City", block_size=10, iterate=True)
 
     # religious pantheon (for us)
     # for us
@@ -159,7 +154,27 @@ if __name__ == "__main__":
     match_events(replay, "(\d*)\t(\d*)\t(.*) has made peace with " + our_leader + "!",
                  "They Make Peace", iterate=True, block_size=3, highlight=True)
 
+    # victory type
+    match_events(replay, "(\d*)\t(\d*)\t.* has won a (.*) Victory!!!",
+                 "Victory Type", iterate=False, block_size=1, highlight=True)
 
+    # time spent
+    match_events(replay, "(\d*)\t(\d*)\tTime spent: (.*)",
+                 "Time spent", iterate=False, block_size=1, highlight=True)
+                 
+
+
+    # can pull various stats out of our histogram as well
+    # (e.g. number of techs, social policy, sci/turn)
+
+    # probably export all histograms to "game-x-all-histograms.csv"
+    # and just the ones we care about to "game-x-focus.csv" (or tsv?)
+    # e.g. science at turn X, turns to social policy #Z
+    # turns to # of techs... whatever else is in the histograms
+
+    # victory type goes here too
+
+    # need to change this aspect to be horizontal instead of vertical
     
 
 

@@ -1,18 +1,288 @@
 import os
 import sys
 import struct
+import ctypes
 import uuid
 import optparse
 import codecs
 import signal
 
-
-known_types = { 1: "Founding",
-                2: "Culture",
-                6: "Religion", }
-
 class Civ5FileReader(object):
     """ Some basic functionality for reading data from Civ 5 files. """
+    def read_map(self):
+
+        lookup = {
+            0 : { # 4 of these
+                '\x00' : '0',
+                '\x01' : '1',
+                '\x02' : '2',
+                '\x03' : ' ', 
+                },
+            1 : { # 7 of these
+                '\x00' : '0',
+                '\x01' : '1',
+                '\x02' : '2',
+                '\x03' : '3',
+                '\x04' : '4',
+                '\x05' : '5',
+                '\x06' : ' ',
+                },
+            2 : { # 25 of these 
+                '\n'   : 'n',
+                '\r'   : 'r',
+                '\t'   : 't',
+                '\x00' : '0',
+                '\x01' : '1',
+                '\x02' : '2',
+                '\x03' : '3',
+                '\x04' : '4',
+                '\x05' : '5',
+                '\x06' : '6',
+                '\x07' : '7',
+                '\x08' : '8',
+                '\x0b' : 'b',
+                '\x0c' : 'c',
+                '\x0f' : 'f',
+                '\x10' : ')',
+                '\x11' : '!',
+                '\x12' : '@',
+                '\x13' : '#',
+                '\x14' : '$',
+                '\x15' : '%',
+                '\x16' : '^',
+                '\x17' : '&',
+                '\x18' : '*',
+                '\xff' : ' ',
+               
+
+                },
+            3 : { # 11 of these
+                '\n'   : 'n',
+                '\x00' : ' ',
+                '\x01' : '1',
+                '\x02' : '2',
+                '\x03' : '3',
+                '\x04' : '4',
+                '\x05' : '5',
+                '\x06' : '6',
+                '\x08' : '8',
+                '\x0c' : 'c',
+                '\x0e' : 'e',
+                },
+        }
+        unknowns = []
+
+       
+        print "now reading map..."
+
+        x = self.read_int()
+        y = self.read_int()
+        hexes = self.read_int()
+
+        print "map dimensions", x, y, "hexes:", hexes
+        assert(x*y==hexes)
+        
+        map = {}
+        for i in range(0, x):
+            map[i] = {}
+    
+
+        for i in range(0, hexes):
+            a = self.read_int() # not sure what these represent yet
+            b = self.read_int() # not sure what these represent yet
+            c = self.read_int() # not sure what these represent yet
+            map[i/y][i%y] = c
+            # a seems to always be 1
+            # b seems to always be the number of turns
+            # if i had to guess, c is terrain + resources
+            print a, b, c,
+
+            data=ctypes.create_string_buffer(4)
+            struct.pack_into("<i", data, 0, c)
+            print list(data)
+
+
+        for k in range(0, 4):
+            print "data", k, "map"
+            print
+
+
+            unknowns = []
+
+            for i in range(0, y):
+                for j in range(0, x):
+                    data=ctypes.create_string_buffer(4)
+                    struct.pack_into("<i", data, 0, map[j][i])
+                    if data[k] in lookup[k]:
+                        sys.stdout.write(lookup[k][data[k]])
+                    else:
+                        sys.stdout.write('?')
+                        if data[k] not in unknowns:
+                            unknowns += data[k]
+                sys.stdout.write('\n')
+
+            print unknowns
+            print
+
+        return map
+                    
+      
+    def read_header(self):
+        print "now reading header..."
+
+        print self.read_sized_string_list(4)[0] # CIV5
+        print self.read_int(), "1?" # 1, not sure what it means, seems consistent
+        print self.read_string() # game version
+        print self.read_string() # build
+        self.r.read(5) # 5 bytes, not sure of what
+        our_civ = self.read_string() # our civ
+        print our_civ, "<-- our civ"
+        print self.read_string() # Difficulty Level
+        print self.read_string() # Starting Era
+        print self.read_string() # Ending? Era
+        print self.read_string() # Game Speed
+        print self.read_string() # World Size
+        print self.read_string() # Map Script
+        n_dlcs = self.read_int() # a number, looks to be 10? maybe # of DLCs?
+        print n_dlcs, "DLCS loaded:"
+
+        # look for a 01 00 00 00, this is the marker that starts DLCs
+        # looks like we're here for DLC's...
+        
+        for i in range(0, n_dlcs):
+            while self.read_int() != 1:
+                continue
+
+            print " ", self.read_string()
+
+
+        n_mods = self.read_int() # always 2, not sure what it means (mods?)
+        print n_mods, "mods loaded:" 
+        
+        for i in range(0, n_mods):
+            print " ", self.read_string() #check sum
+            print " ", self.read_int()
+            print " ", self.read_string()
+
+        print self.read_int(), "0?"
+        print self.read_int(), "0?" # should be 2 zeros
+        print self.read_string()
+
+        print self.read_int(), "1?"
+        print self.read_int(), "0?" # should be a 1 and a 0
+        print self.read_string() # map script again
+
+        print self.read_int(), "3? game options"  # these are almost certainly game options
+        print self.read_int(), "0?"
+        print self.read_int(), "1?"
+        print self.read_int(), "0?"
+
+        print self.read_int(), "3?"
+        print self.read_int(), "1?"
+        print self.read_int(), "15?"
+        print self.read_int(), "5?"
+
+        print self.read_int(), "0"
+        print self.read_int(), "1"
+        print self.read_int(), "2"
+        print self.read_int(), "3"
+
+        print self.read_int(), "4"
+        # -1 loss
+        # 0 time
+        # 1 science
+        # 2 diplo
+        # 3 culture
+        # 4 military
+
+        victory_types = { -1 : "Loss",
+                          0  : "Time",
+                           1 : "Science",
+                           2 : "Diplomatic",
+                           3 : "Cultural",
+                           4 : "Military" }
+        
+        vt= self.read_int()
+        assert(vt in (-1, 0, 1, 2, 3, 4))
+        print "Victory Type:", victory_types[vt], vt
+
+        print self.read_int(), "0"
+
+        self.r.read(9) # 9 bytes for what i do not know
+        
+        print self.read_string(), "end date"
+    
+        print self.read_int(), "0"
+
+        n_events = self.read_int()
+        print n_events, "?"
+        entities = self.read_int()
+        print entities, "number of entities"
+        print self.read_int(),
+        print self.read_int(), 
+        print self.read_int(), 
+        print self.read_int(),
+
+        our_leader = self.read_string()
+
+        # pass this on to mark
+        ld = open('our_leader.py', 'w')
+        ld.write("our_leader = '" + our_leader + "'")
+        ld.close()
+
+        print "***" + our_leader + "***", 
+
+        print self.read_string(), self.read_string(), self.read_string()
+
+        for i in range(1, entities):
+            print self.read_int(), self.read_int(), self.read_int(), self.read_int(),
+            print self.read_string(), self.read_string(), self.read_string(), self.read_string()
+
+
+        # oh score, histogram data!
+
+        data_sets = self.read_int()
+        print data_sets, "data sets?"
+
+        for i in range(0, data_sets):
+            print self.read_string()
+
+        n_ent = self.read_int()
+
+
+        print n_ent, "civs"
+
+        for i in range(0, n_ent):
+            print
+            print "histograms from civ #", i
+            n_data = self.read_int()
+            print n_data, "<-- n_data"
+            for j in range(0, n_data):
+                n_turns = self.read_int()
+                print n_turns, "<-- turns", j
+                for k in range(0, n_turns):
+                    print self.read_int(), 
+                    print self.read_int()
+                print
+
+
+
+
+
+
+        print self.read_int(), "2?"
+
+        n_events = self.read_int()
+        print "n_events = ", n_events
+                
+
+        print "now at", self.r.tell()
+
+
+        return self.r.tell(), n_events
+
+
+        # the first bit
 
     def turn_event(self):
         # event type seems to be one of the following values:
@@ -57,11 +327,11 @@ class Civ5FileReader(object):
         print "Team", str(team).rjust(3)
         
         text = self.read_string() # any message?
-        print text
+        print text.encode('utf-8')
         
         if text != "": # ignore messages with no content
             print
-            print "^^^" + str(turn) + "\t" + str(team) + "\t" + text
+            print "^^^" + str(turn) + "\t" + str(team) + "\t" + text.encode('utf-8')
 
 
 
@@ -112,7 +382,7 @@ class Civ5FileReader(object):
     def read_string(self):
         """ Read an undelimited string with the length given in the first 4 bytes """
         len = self.read_int()
-        print "(read",len, "@", self.r.tell() , ")"
+#        print "(read",len, "@", self.r.tell() , ")"
         return self.r.read(len).decode("utf-8")
 
     def read_terminated_string(self):
@@ -142,6 +412,8 @@ class Civ5FileReader(object):
 
             
 if __name__ == "__main__":
+
+   
     # set up some command line options
     op = optparse.OptionParser()
     (options, args) = op.parse_args()
@@ -160,45 +432,35 @@ if __name__ == "__main__":
     r = file(fn, "rb")
     all = r.read()
 
-# we're going to look for "is founded" and then roll back to the start to
-# find the start
-# then extract all messages
-
-    bp = all.find("is founded")
-    
-    # since i am always playing poland, it is always going to be warsaw
-    # so hard coding to -7
-    # event format
-    # 0xff 0xff 0xff 0xff 0x00 0x00 (four bytes, length of the string after)
-    # (string) (four bytes, turn number)
-    
+   
     cf = Civ5FileReader(fn)
+
+    cf.r.seek(0,0)
+
+    data_starts_at, n_events = cf.read_header()
     
-#    cf.r.seek(bp-39, 0) # not 11, not 79
-    cf.r.seek(bp-79, 0) # not 11, not 79
+    cf.r.seek(data_starts_at,0)
 
+    print "now reading", n_events, "events..."
 
-    while True:
+    for i in range(n_events): 
         cf.turn_event()
 
+    print "left off", cf.r.tell()
+
+    # now we read the map
+    cf.read_map()
+
+    print "left off", cf.r.tell()
+
+
+
 
 
 
 
 
     
-
-
-    
-
-
-
-    
-
-
-# Messages are <string> with a turn # byte
-
-
 
 
     
