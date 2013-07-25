@@ -60,19 +60,14 @@ benchmarks is I use a negative turn number for wonders the AI gets.
 
 ## Known Bugs and Limitations
 
-* So far this only works for Poland, because that's the Civ I've been
-  playing most since BNW came out. You can change this by either
-  fixing the code to read the player's civ name or by changing byte
-  offsets. I might fix this one day, probably once I start playing
-  other Civs. Or you can fix it with a pull request!
-
 * So far it only looks at the notification log.
+
+* Successfully parses the histograms and map, but doesn't do anything
+  with them.
 
 ## Todo?
 
-* Make it work for any civ
-* Reverse-engineer how the header works?
-* Reverse-engineer how the map works?
+* Prettify
 
 
 

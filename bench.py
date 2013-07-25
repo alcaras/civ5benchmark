@@ -7,6 +7,9 @@ import optparse
 import codecs
 import signal
 
+import cPickle as pickle
+
+
 class Civ5FileReader(object):
     """ Some basic functionality for reading data from Civ 5 files. """
     def read_map(self):
@@ -128,6 +131,9 @@ class Civ5FileReader(object):
                     
       
     def read_header(self):
+        histograms = {}
+        histogram_labels = {}
+
         print "now reading header..."
 
         print self.read_sized_string_list(4)[0] # CIV5
@@ -136,13 +142,13 @@ class Civ5FileReader(object):
         print self.read_string() # build
         self.r.read(5) # 5 bytes, not sure of what
         our_civ = self.read_string() # our civ
-        print our_civ, "<-- our civ"
-        print self.read_string() # Difficulty Level
+        print "^^^@@@ civ", our_civ
+        print "^^^@@@ diff", self.read_string() # Difficulty Level
         print self.read_string() # Starting Era
         print self.read_string() # Ending? Era
-        print self.read_string() # Game Speed
-        print self.read_string() # World Size
-        print self.read_string() # Map Script
+        print "^^^@@@ speed", self.read_string() # Game Speed
+        print "^^^@@@ size", self.read_string() # World Size
+        print "^^^@@@ map", self.read_string() # Map Script
         n_dlcs = self.read_int() # a number, looks to be 10? maybe # of DLCs?
         print n_dlcs, "DLCS loaded:"
 
@@ -156,7 +162,7 @@ class Civ5FileReader(object):
             print " ", self.read_string()
 
 
-        n_mods = self.read_int() # always 2, not sure what it means (mods?)
+        n_mods = self.read_int() # number of mods
         print n_mods, "mods loaded:" 
         
         for i in range(0, n_mods):
@@ -230,9 +236,24 @@ class Civ5FileReader(object):
         ld.write("our_leader = '" + our_leader + "'")
         ld.close()
 
+
+
+
+        our_civ = self.read_string()
+
         print "***" + our_leader + "***", 
 
-        print self.read_string(), self.read_string(), self.read_string()
+        print "***" + our_civ + "***",
+
+
+
+        ld = open('our_civ.py', 'w')
+        ld.write("our_civ = '" + our_civ + "'")
+        ld.close()
+
+
+
+        print self.read_string(), self.read_string()
 
         for i in range(1, entities):
             print self.read_int(), self.read_int(), self.read_int(), self.read_int(),
@@ -245,7 +266,10 @@ class Civ5FileReader(object):
         print data_sets, "data sets?"
 
         for i in range(0, data_sets):
-            print self.read_string()
+            h =  self.read_string()
+            print h
+            histogram_labels[i] = h
+            histograms[i] = {}
 
         n_ent = self.read_int()
 
@@ -254,15 +278,20 @@ class Civ5FileReader(object):
 
         for i in range(0, n_ent):
             print
-            print "histograms from civ #", i
+            print "histograms for civ #", i
             n_data = self.read_int()
             print n_data, "<-- n_data"
             for j in range(0, n_data):
+                histograms[i][j] = {}
+                print "histogram data for ", histogram_labels[j], "civ", i
                 n_turns = self.read_int()
                 print n_turns, "<-- turns", j
                 for k in range(0, n_turns):
-                    print self.read_int(), 
-                    print self.read_int()
+                    turn = self.read_int()
+                    value = self.read_int()
+                    print turn, value
+                    histograms[i][j][k] = value
+
                 print
 
 
@@ -277,6 +306,16 @@ class Civ5FileReader(object):
                 
 
         print "now at", self.r.tell()
+
+        print histogram_labels
+
+        print "Pickling histograms..."
+
+        jar = open('histograms.pickle', 'wb')
+        pickle.dump(histograms, jar)
+        jar.close()
+
+        print "Pickled"
 
 
         return self.r.tell(), n_events
