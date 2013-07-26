@@ -6,3 +6,16 @@
 push_github
 games/
 originals/
+*.pickle
+our_civ.py
+our_leader.py
+test
+view
+wonders.csv
+build-all
+*.pyc
+*\#*
+\.DS_Store
+perl-wonder-tracker
+
+

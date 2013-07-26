@@ -212,9 +212,14 @@ class Civ5FileReader(object):
         assert(vt in (-1, 0, 1, 2, 3, 4))
         print "Victory Type:", victory_types[vt], vt
 
-        print self.read_int(), "0"
 
-        self.r.read(9) # 9 bytes for what i do not know
+        # guess -- tells how many extra bytes to read        
+        unknown_value = self.read_int()
+        print unknown_value, "unknown_value"
+        assert(unknown_value in [0, 4])
+
+
+        self.r.read(9+unknown_value) # 9 bytes for what i do not know
         
         print self.read_string(), "end date"
     
