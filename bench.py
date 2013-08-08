@@ -258,7 +258,6 @@ class Civ5FileReader(object):
     
         print self.read_int(), "0"
 
-        sys.exit()
         n_events = self.read_int()
         print n_events, "?"
         entities = self.read_int()
