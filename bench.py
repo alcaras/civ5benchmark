@@ -216,10 +216,8 @@ class Civ5FileReader(object):
         # guess -- tells how many extra bytes to read        
         unknown_value = self.read_int()
         print unknown_value, "unknown_value"
-        assert(unknown_value in [0, 4])
 
-
-        self.r.read(9+unknown_value) # 9 bytes for what i do not know
+        self.r.read(9+unknown_value) # 9+unknown_value bytes for what i do not know
         
         print self.read_string(), "end date"
     

@@ -60,14 +60,20 @@ benchmarks is I use a negative turn number for wonders the AI gets.
 
 ## Known Bugs and Limitations
 
-* So far it only looks at the notification log.
-
-* Successfully parses the histograms and map, but doesn't do anything
-  with them.
+* Successfully parses the map, but doesn't do anything with them.
 
 ## Todo?
 
-* Prettify
+* Perhaps generate a "summary log" that's suitable for pasting on
+  forums (using BBCode?) to summarize a game? Could be handy for
+  succession games or after action reports. (This would go turn by
+  turn)
+* Fix the bug with histogram data where the save file shows max_turn
+  instead of a -1. Just make it show -1 where it's max_turn.
+* Ignore city-states in wars of aggression/defensive wars. Easily done
+  -- just make it so if the civ idea is greater than the number of
+  non-city-state civs, ignore and go to the next match.
+
 
 
 
