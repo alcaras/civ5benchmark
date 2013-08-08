@@ -170,30 +170,68 @@ class Civ5FileReader(object):
             print " ", self.read_int()
             print " ", self.read_string()
 
-        print self.read_int(), "0?"
-        print self.read_int(), "0?" # should be 2 zeros
+        print "expecting two zeroes..."
+        for i in range(0, 2):
+            val = self.read_int()
+            print " got", val
+            assert(val==0)
+        print "all good"
+
         print self.read_string()
 
-        print self.read_int(), "1?"
-        print self.read_int(), "0?" # should be a 1 and a 0
+        print "expecting 1 and 0..."
+        for i in range(0, 2):
+            val = self.read_int()
+            print " got", val
+            assert(val==(1-i)) # pretty way of doing 1, 0
+        print "all good"
+
         print self.read_string() # map script again
 
-        print self.read_int(), "3? game options"  # these are almost certainly game options
-        print self.read_int(), "0?"
-        print self.read_int(), "1?"
-        print self.read_int(), "0?"
+        # game option variables
+        # we don't know what these are yet
+        # so pardon the naming scheme
+        
+        print "likely game options..."
 
-        print self.read_int(), "3?"
-        print self.read_int(), "1?"
-        print self.read_int(), "15?"
-        print self.read_int(), "5?"
+        # helper function, game option inspect
+        def go_inspect(label, expectation):
+            go = self.read_int()
+            print " game option", label,
+            print "expecting", expectation,
+            print "got", go
+            assert(go in expectation)
+            return go
 
-        print self.read_int(), "0"
-        print self.read_int(), "1"
-        print self.read_int(), "2"
-        print self.read_int(), "3"
+        # a bunch of asserts to stop the parse
+        # if we see a value in a save that we haven't seen in that
+        # slot before -- hopefully this will help us
+        # figure out what these values actually do
 
-        print self.read_int(), "4"
+        go_a = go_inspect("A", [3, 4])
+        go_b = go_inspect("B", [0])
+        go_c = go_inspect("C", [1])
+        go_d = go_inspect("D", [0])
+
+        go_e = go_inspect("E", [3, 2, 1])
+        go_f = go_inspect("F", [1, 2, 3]) 
+        go_g = go_inspect("G", [15, 2, 12])
+        go_h = go_inspect("H", [5, 15, 13])
+
+        # read extra ints based on go_f
+        for i in range(0, go_f-1):
+            print "extra int", i, "is",
+            print self.read_int()
+        # no idea what these do
+
+
+        # this 0 1 2 3 4 sequence appears consistent
+        for i in range(0, 5):
+            print "expecting", i,
+            val = self.read_int()
+            print "got", val
+#            assert(val==i)
+
         # -1 loss
         # 0 time
         # 1 science
@@ -212,17 +250,15 @@ class Civ5FileReader(object):
         assert(vt in (-1, 0, 1, 2, 3, 4))
         print "Victory Type:", victory_types[vt], vt
 
+        print self.read_int(), "unknown_value"
 
-        # guess -- tells how many extra bytes to read        
-        unknown_value = self.read_int()
-        print unknown_value, "unknown_value"
-
-        self.r.read(9+unknown_value) # 9+unknown_value bytes for what i do not know
+        self.r.read(9) # 9 extra bytes for what we do not know
         
         print self.read_string(), "end date"
     
         print self.read_int(), "0"
 
+        sys.exit()
         n_events = self.read_int()
         print n_events, "?"
         entities = self.read_int()
@@ -238,7 +274,6 @@ class Civ5FileReader(object):
         ld = open('our_leader.py', 'w')
         ld.write("our_leader = '" + our_leader + "'")
         ld.close()
-
 
 
 
@@ -296,9 +331,6 @@ class Civ5FileReader(object):
                     histograms[i][j][k] = value
 
                 print
-
-
-
 
 
 

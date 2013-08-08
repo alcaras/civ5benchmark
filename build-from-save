@@ -1,0 +1,3 @@
+python bench.py saves/"$1".Civ5Replay | grep ^^ | sed 's/^^^^//g' > output/"$1".txt
+python mark.py output/"$1".txt > data/"$1".tsv
+cat data/"$1".tsv

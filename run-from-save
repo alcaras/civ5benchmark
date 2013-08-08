@@ -1,0 +1,3 @@
+echo "running $1"
+python bench.py saves/"$1".Civ5Replay 
+echo "   "
